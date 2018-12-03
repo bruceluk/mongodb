@@ -47,7 +47,7 @@
   get_pool_timeout :: integer()
 }).
 
--define(TRANSACTION_TIMEOUT, 5000).
+-define(TRANSACTION_TIMEOUT, 2400).
 
 -type readmode() :: primary | secondary | primaryPreferred | secondaryPreferred | nearest.
 -type host() :: list().
