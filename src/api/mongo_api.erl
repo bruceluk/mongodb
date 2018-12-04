@@ -17,7 +17,7 @@
 -export([
   connect/4,
   insert/3,
-  find/4, find/6,
+  find/4, find/6, find/7,
   find_one/5, find_one/4,
   update/5,
   delete/3,
@@ -70,6 +70,16 @@ find(Topology, Collection, Selector, Projector, Skip, Batchsize) ->
       Query = mongoc:find_query(Conf, Collection, Selector, Projector, Skip, Batchsize),
       mc_worker_api:find(Worker, Query)
     end, #{}).
+
+-spec find(atom() | pid(), collection(), selector(), projector(), integer(), integer(), atom()) ->
+  {ok, cursor()} | [].
+%% Mode = primaryPreferred | secondaryPreferred | nearest
+find(Topology, Collection, Selector, Projector, Skip, Batchsize, Mode) ->
+  mongoc:transaction_query(Topology,
+    fun(Conf = #{pool := Worker}) ->
+      Query = mongoc:find_query(Conf, Collection, Selector, Projector, Skip, Batchsize),
+      mc_worker_api:find(Worker, Query)
+    end, #{rp_mode => Mode}).
 
 -spec find_one(atom() | pid(), collection(), selector(), projector()) ->
   map() | undefined.
