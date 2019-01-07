@@ -23,7 +23,8 @@
   delete/3,
   count/4,
   ensure_index/3,
-  disconnect/1]).
+  disconnect/1,
+  aggregate/3, aggregate/4]).
 
 -spec connect(atom(), list(), proplists:proplist(), proplists:proplist()) -> {ok, pid()}.
 connect(Type, Hosts, TopologyOptions, WorkerOptions) ->
@@ -117,3 +118,15 @@ ensure_index(Topology, Coll, IndexSpec) ->
 -spec disconnect(atom() | pid()) -> ok.
 disconnect(Topology) ->
   mongoc:disconnect(Topology).
+
+aggregate(Topology, Collection, Pipeline) ->
+  aggregate(Topology, Collection, Pipeline, 1000).
+
+aggregate(Topology, Collection, Pipeline, CursorLimit) when is_list(Pipeline)->
+	Fun = fun(#{pool := Connection}) ->				  
+				  mc_worker_api:command(Connection, {<<"aggregate">>, Collection, 
+													 <<"pipeline">>, Pipeline,
+													 <<"cursor">>, {<<"batchSize">>, CursorLimit}
+													})	  
+		  end,
+	mongoc:transaction(Topology, Fun, #{}).
